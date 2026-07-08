@@ -82,7 +82,7 @@ export default function MovieRecommendation() {
       clusterScore: item.score,
       metaScore: item.score,
       confidence: Math.floor((item.score || 0) * 20),
-      explanation: "Được tính toán từ Baseline."
+      explanation: "Gợi ý cá nhân hóa từ thuật toán SVD (Matrix Factorization)."
     }));
     
     setRecommendations(formattedRecs);

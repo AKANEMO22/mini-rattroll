@@ -43,11 +43,17 @@ class EvaluationService:
         precision += random.uniform(-0.01, 0.01)
         ndcg += random.uniform(-0.01, 0.01)
         
+        # Calculate simulated RMSE and Latency for the charts
+        rmse = 0.85 + random.uniform(-0.05, 0.05)
+        latency = 25.0 + random.uniform(5, 15)
+        
         metrics = {
             "timestamp": datetime.now().strftime("%H:%M:%S"),
             "ndcg": round(max(0, min(1, ndcg)), 4),
             "precision": round(max(0, min(1, precision)), 4),
-            "recall": round(max(0, min(1, recall)), 4)
+            "recall": round(max(0, min(1, recall)), 4),
+            "rmse": round(rmse, 4),
+            "latency": round(latency, 2)
         }
         
         self.save_metrics(metrics)

@@ -6,24 +6,12 @@ import { api } from '../services/api';
 export default function DriftMonitoring() {
   const [detectStatus, setDetectStatus] = useState<any>(null);
   
-  // Generate distribution data for the chart based on drift state
+  // Use real distribution data from the API if available
   const getChartData = () => {
-    const isDrift = detectStatus?.is_drift;
-    const data = [];
-    for (let i = 1; i <= 5; i += 0.5) {
-      // Baseline is centered around 4.0
-      const baseline = Math.exp(-Math.pow(i - 4.0, 2) / 0.5) * 100;
-      // Current shifts to 2.5 if drifted, otherwise stays near baseline
-      const center = isDrift ? 2.5 : 3.9;
-      const current = Math.exp(-Math.pow(i - center, 2) / 0.5) * 100;
-      
-      data.push({
-        rating: i.toFixed(1),
-        baseline: Math.round(baseline),
-        current: Math.round(current)
-      });
+    if (detectStatus?.chart_data && detectStatus.chart_data.length > 0) {
+      return detectStatus.chart_data;
     }
-    return data;
+    return [];
   };
 
   const chartData = getChartData();
@@ -52,8 +40,10 @@ export default function DriftMonitoring() {
         <div data-figma-id="DRIFT-STAT-1" className="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <p className="text-sm text-slate-400 mb-2">Biến động CTR</p>
           <div className="flex items-end gap-2">
-            <p className="text-2xl font-bold text-slate-200">-1.2%</p>
-            <TrendingDown className="w-5 h-5 text-rose-400 mb-1" />
+            <p className={`text-2xl font-bold ${detectStatus?.ctr_fluctuation >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              {detectStatus?.ctr_fluctuation > 0 ? '+' : ''}{detectStatus?.ctr_fluctuation ?? '--'}%
+            </p>
+            {detectStatus?.ctr_fluctuation < 0 && <TrendingDown className="w-5 h-5 text-rose-400 mb-1" />}
           </div>
         </div>
         <div data-figma-id="DRIFT-STAT-2" className="bg-slate-900 border border-slate-800 rounded-xl p-5">
