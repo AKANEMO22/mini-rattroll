@@ -1,0 +1,11 @@
+node_modules/
+__pycache__/
+*.pyc
+.env
+.venv
+env/
+venv/
+*.csv
+!split_data.py
+!join_data.py
+

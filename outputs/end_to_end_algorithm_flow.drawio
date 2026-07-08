@@ -1,0 +1,161 @@
+<mxfile host="app.diagrams.net" modified="2026-07-05T00:00:00.000Z" agent="GitHub Copilot" version="24.7.17" type="device">
+  <diagram id="end-to-end-flow" name="End-to-End Flow">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1400" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="2" value="Client / UI Layer" style="swimlane;whiteSpace=wrap;html=1;fillColor=#1F2937;strokeColor=#4B5563;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="340" height="640" as="geometry"/>
+        </mxCell>
+        <mxCell id="3" value="React/Vite App\n(fontend/src/app/App.tsx)\nSidebar + Routes + Pages" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#64748B;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="80" width="280" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="4" value="Recommendation Page\nInput: user_id, top_k\nOutput: list movie cards" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#38BDF8;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="190" width="280" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="5" value="Drift Monitoring Page\nInput: none\nOutput: p_value, drift_score, status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#F97316;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="290" width="280" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="6" value="Simulation Page\nInput: drift_type, severity\nOutput: success message" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#A855F7;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="390" width="280" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="7" value="Evaluation Page\nInput: none\nOutput: precision, recall, NDCG history" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#22C55E;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="490" width="280" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="8" value="User Profile / Dataset Pages\nInput: user_id, query\nOutput: profile, movie search, dataset info" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#94A3B8;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="590" width="280" height="85" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="9" value="API Layer" style="swimlane;whiteSpace=wrap;html=1;fillColor=#111827;strokeColor=#4B5563;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="390" y="20" width="420" height="640" as="geometry"/>
+        </mxCell>
+        <mxCell id="10" value="FastAPI Server\napi/server.py\nCORS + router" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#60A5FA;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="430" y="80" width="340" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="11" value="api/routes.py\n/recommend /status /detect_status\n/models /simulate /metrics\n/dataset/info /movies/search /users/{id} /history" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#111827;strokeColor=#38BDF8;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="430" y="170" width="340" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="12" value="RecommendationService\nRole: generate movie list\nInput: user_id, top_k, drift_state\nOutput: ranked recommendations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#22C55E;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="430" y="300" width="340" height="95" as="geometry"/>
+        </mxCell>
+        <mxCell id="13" value="DriftMonitoringService\nRole: compare recent_scores vs baseline\nInput: recent_scores, top_movies baseline\nOutput: is_drift, p_value, drift_score" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#F97316;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="430" y="415" width="340" height="95" as="geometry"/>
+        </mxCell>
+        <mxCell id="14" value="SimulationService\nRole: write/read drift state\nInput: drift_type, severity\nOutput: drift_state.json" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#A855F7;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="430" y="530" width="340" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="15" value="EvaluationService\nRole: offline metric round\nInput: rec_service, random users\nOutput: precision, recall, ndcg + metrics_history.json" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#22C55E;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="430" y="625" width="340" height="95" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="16" value="Data / Storage Layer" style="swimlane;whiteSpace=wrap;html=1;fillColor=#0F172A;strokeColor=#4B5563;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="830" y="20" width="420" height="640" as="geometry"/>
+        </mxCell>
+        <mxCell id="17" value="data/top_movies_baseline.json\nBaseline rankings + genres + mean_rating\nUsed by RecommendationService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#111827;strokeColor=#34D399;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="870" y="80" width="340" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="18" value="data/drift_state.json\nCurrent drift type + severity\nControls recommendation penalty" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#111827;strokeColor=#C084FC;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="870" y="185" width="340" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="19" value="data/metrics_history.json\nTime-series metrics history\nShown on Dashboard/Evaluation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#111827;strokeColor=#4ADE80;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="870" y="280" width="340" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="20" value="data/ml-25m/ratings.csv + movies.csv\nMovieLens 25M source\nUsed by DatasetService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#111827;strokeColor=#94A3B8;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="870" y="375" width="340" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="21" value="api/services/dataset_service.py\nDataset info / search / user profile / history" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#111827;strokeColor=#94A3B8;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="870" y="485" width="340" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="22" value="Algorithm Role Summary" style="swimlane;whiteSpace=wrap;html=1;fillColor=#1D4ED8;strokeColor=#93C5FD;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="20" width="860" height="640" as="geometry"/>
+        </mxCell>
+        <mxCell id="23" value="1) Recommendation algorithm\nInput: user_id, top_k, baseline JSON, drift state\nProcess: cache check → seed random by user_id → pick top movies → apply drift penalty\nOutput: list of items {item_id, title, year, genres, score}\nRole: serve online recommendations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0B1220;strokeColor=#22C55E;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="80" width="380" height="170" as="geometry"/>
+        </mxCell>
+        <mxCell id="24" value="2) Drift simulation\nInput: drift_type, severity from UI\nProcess: save to drift_state.json\nOutput: state consumed by recommendation & monitoring\nRole: inject synthetic drift for testing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0B1220;strokeColor=#C084FC;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="1710" y="80" width="380" height="170" as="geometry"/>
+        </mxCell>
+        <mxCell id="25" value="3) Drift detection\nInput: recent_scores, baseline_scores\nProcess: if recent_scores < 20 then auto-generate traffic → KS test\nOutput: {is_drift, p_value, drift_score}\nRole: decide whether model behavior diverged" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0B1220;strokeColor=#F97316;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="270" width="380" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="26" value="4) Evaluation\nInput: recommendation service, 20 random users\nProcess: run top_k=10, calculate precision/NDCG/recall, append history\nOutput: metrics JSON + chart data\nRole: offline quality monitoring" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0B1220;strokeColor=#22C55E;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="1710" y="270" width="380" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="27" value="5) Dataset service\nInput: query, user_id, dataset path\nProcess: load movies.csv, scan ratings.csv by chunks, join movie titles\nOutput: dataset info, search results, user profile, global history\nRole: expose MovieLens data to UI" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0B1220;strokeColor=#94A3B8;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="470" width="780" height="135" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="28" value="Open app / start services" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1E3A8A;strokeColor=#93C5FD;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="70" y="30" width="180" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="29" value="User actions on UI\nrecommend / monitor / simulate / evaluate / profile" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1E3A8A;strokeColor=#93C5FD;fontColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="70" y="675" width="260" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="30" value="request / response" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#60A5FA;" edge="1" parent="1" source="28" target="3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="31" value="navigate / click" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#60A5FA;" edge="1" parent="1" source="3" target="4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="32" value="POST /recommend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#22C55E;" edge="1" parent="1" source="4" target="10">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="33" value="route to service" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#22C55E;" edge="1" parent="1" source="10" target="11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="34" value="generate candidates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#22C55E;" edge="1" parent="1" source="11" target="12">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="35" value="read baseline JSON" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#34D399;" edge="1" parent="1" source="12" target="17">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="36" value="read drift state" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#C084FC;" edge="1" parent="1" source="12" target="18">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="37" value="return recommendations" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#22C55E;" edge="1" parent="1" source="12" target="4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="38" value="POST /simulate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#A855F7;" edge="1" parent="1" source="6" target="14">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="39" value="write drift_state.json" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#C084FC;" edge="1" parent="1" source="14" target="18">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="40" value="GET /detect_status" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#F97316;" edge="1" parent="1" source="5" target="13">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="41" value="auto-generate traffic if <20 scores" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#F97316;" edge="1" parent="1" source="13" target="12">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="42" value="KS test against baseline" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#F97316;" edge="1" parent="1" source="13" target="17">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="43" value="GET /metrics" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#22C55E;" edge="1" parent="1" source="7" target="15">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="44" value="read/write metrics_history.json" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4ADE80;" edge="1" parent="1" source="15" target="19">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="45" value="GET /dataset/info, /movies/search, /users/{id}, /history" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#94A3B8;" edge="1" parent="1" source="8" target="21">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="46" value="load CSVs and chunk scan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#94A3B8;" edge="1" parent="1" source="21" target="20">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="47" value="return profile/history/info" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#94A3B8;" edge="1" parent="1" source="21" target="8">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="48" value="Outputs shown in UI\n- recommendation cards\n- drift status / p-value\n- metrics charts\n- user profile\n- search results" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#052E16;strokeColor=#22C55E;fontColor=#DCFCE7;" vertex="1" parent="1">
+          <mxGeometry x="70" y="760" width="280" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="49" value="Core idea\nThis project is not a full trained hybrid recommender in production yet.\nThe online path is: baseline ranking + drift injection + KS drift test + metric logging." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#111827;strokeColor=#64748B;fontColor=#E2E8F0;" vertex="1" parent="1">
+          <mxGeometry x="430" y="760" width="1140" height="110" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

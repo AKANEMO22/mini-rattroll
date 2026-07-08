@@ -1,0 +1,72 @@
+{
+  "api/routes.py": {
+    "symbols": [
+      {
+        "name": "recommend",
+        "kind": "route",
+        "signature": "POST /recommend (user_id: str, top_k: int)",
+        "purpose": "Nhận request và gọi RecommendationService trả về list item",
+        "status": "active",
+        "depends_on": ["RecommendationService"],
+        "used_by": ["Streamlit Frontend"]
+      },
+      {
+        "name": "simulate_drift",
+        "kind": "route",
+        "signature": "POST /simulate (type: str, severity: float)",
+        "purpose": "Inject data drift giả lập vào hệ thống để trigger Adaptation Engine",
+        "status": "active",
+        "depends_on": ["SimulationService", "RecommendationService"],
+        "used_by": ["Streamlit Drift Simulation Page"]
+      }
+    ]
+  },
+  "src/domain/models.py": {
+    "symbols": [
+      {
+        "name": "RecommendationHistory",
+        "kind": "class",
+        "signature": "class RecommendationHistory(BaseModel)",
+        "purpose": "Lưu lịch sử một phiên gợi ý (latency, version, user_id)",
+        "status": "active",
+        "depends_on": ["pydantic.BaseModel"],
+        "used_by": ["RecommendationService", "BehaviorMonitor"]
+      },
+      {
+        "name": "DriftEvent",
+        "kind": "class",
+        "signature": "class DriftEvent(BaseModel)",
+        "purpose": "Format dữ liệu phát tín hiệu khi Detector tìm thấy p-value thấp",
+        "status": "active",
+        "depends_on": ["pydantic.BaseModel"],
+        "used_by": ["DriftDetector", "ImpactDiagnoser"]
+      }
+    ]
+  },
+  "src/recommender/registry.py": {
+    "symbols": [
+      {
+        "name": "ModelRegistry",
+        "kind": "class",
+        "signature": "class ModelRegistry(base_path: str)",
+        "purpose": "Quản lý lưu trữ/versioning/rollback các mô hình trên ổ cứng",
+        "status": "active",
+        "depends_on": ["json", "os"],
+        "used_by": ["AdminSVC", "RetrainExecutor"]
+      }
+    ]
+  },
+  "src/adaptation/diagnosis/impact_analyzer.py": {
+    "symbols": [
+      {
+        "name": "ComponentImpactAnalyzer",
+        "kind": "class",
+        "signature": "class ComponentImpactAnalyzer(event_manager: EventManager)",
+        "purpose": "Đánh giá động xem component nào (MF hay ClusterLR) gây ra drift dựa vào drift_score",
+        "status": "locked",
+        "depends_on": ["src.core.events.EventManager"],
+        "used_by": ["RetrainExecutor"]
+      }
+    ]
+  }
+}
