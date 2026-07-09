@@ -45,7 +45,7 @@ export default function Evaluation() {
         </div>
         <div data-figma-id="EVAL-METRIC-4" className="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <p className="text-sm text-slate-400 mb-2">Mean Average Precision (MAP)</p>
-          <p className="text-2xl font-bold text-slate-200">{metrics ? (metrics.precision * 0.9).toFixed(4) : '--'}</p>
+          <p className="text-2xl font-bold text-slate-200">{metrics?.map?.toFixed(4) || '--'}</p>
         </div>
       </div>
 

@@ -1,17 +1,30 @@
 import React, { useState } from 'react';
-import { PlayCircle, Zap, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
+import { PlayCircle, Zap, AlertTriangle, CheckCircle, RefreshCw, Terminal } from 'lucide-react';
 import { api } from '../services/api';
 
 export default function Simulation() {
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulationResult, setSimulationResult] = useState<any>(null);
+  const [logs, setLogs] = useState<any[]>([]);
+
+  const fetchLogs = async () => {
+    try {
+      const res = await fetch('http://127.0.0.1:8000/simulate/logs');
+      const data = await res.json();
+      setLogs(data);
+    } catch (e) {
+      console.error("Failed to fetch logs", e);
+    }
+  };
 
   const handleSimulate = async (type: string) => {
     setIsSimulating(true);
     setSimulationResult(null);
+    setLogs([]);
     const severity = type === 'None' ? 0.0 : 0.8;
     const res = await api.simulateDrift(type, severity);
     setSimulationResult({ type, ...res });
+    await fetchLogs();
     setIsSimulating(false);
   };
 
@@ -24,10 +37,10 @@ export default function Simulation() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { id: 'preference', name: 'Preference Drift', desc: 'Người dùng thay đổi sở thích đột ngột' },
-          { id: 'interaction', name: 'Interaction Drift', desc: 'Lượng tương tác giảm mạnh' },
-          { id: 'context', name: 'Context Drift', desc: 'Thay đổi hành vi theo thời gian/thiết bị' },
-          { id: 'structural', name: 'Structural Drift', desc: 'Cấu trúc ma trận thay đổi' }
+          { id: 'Preference Drift', name: 'Preference Drift', desc: 'Bơm 200 đánh giá rác (điểm 1.0 - 2.0) vào luồng thời gian thực.' },
+          { id: 'Interaction Drift', name: 'Interaction Drift', desc: 'Bơm 200 đánh giá phân cực (chỉ 1.0 hoặc 5.0) làm rối hệ thống.' },
+          { id: 'Context Drift', name: 'Context Drift', desc: 'Bơm 200 tương tác ngẫu nhiên (điểm 1.0 - 3.0) từ nền tảng khác.' },
+          { id: 'Structural Drift', name: 'Structural Drift', desc: 'Phá hủy ma trận bằng cách bơm 200 điểm số hoàn toàn ngẫu nhiên.' }
         ].map((drift) => (
           <div key={drift.id} data-figma-id={`SIM-BTN-${drift.id}`} className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col">
             <h3 className="font-semibold text-slate-200 mb-1">{drift.name}</h3>
@@ -55,54 +68,69 @@ export default function Simulation() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         <div data-figma-id="SIM-PROGRESS" className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-5">
           <h3 className="font-semibold text-slate-200 mb-6 flex items-center gap-2">
-            <PlayCircle className="w-5 h-5 text-indigo-400" /> Quá trình Mô phỏng
+            <Terminal className="w-5 h-5 text-indigo-400" /> Bảng Dữ liệu Đã Bơm
           </h3>
           
-          {isSimulating ? (
-            <div className="h-48 flex flex-col items-center justify-center text-slate-400">
-              <RefreshCw className="w-8 h-8 animate-spin mb-4 text-indigo-500" />
-              <p>Đang tiến hành bơm nhiễu và chạy chẩn đoán...</p>
-            </div>
-          ) : simulationResult ? (
-            <div className="space-y-4">
-              <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-emerald-400 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-emerald-400">Hoàn thành Mô phỏng</h4>
-                  <p className="text-sm text-slate-300 mt-1">Đã tiêm nhiễu "{simulationResult.type}". {simulationResult.message}</p>
-                </div>
+          <div className="h-64 bg-slate-950 border border-slate-800 rounded-lg overflow-y-auto">
+            {isSimulating ? (
+              <div className="flex flex-col items-center justify-center h-full text-indigo-400">
+                <RefreshCw className="w-6 h-6 animate-spin mb-2" />
+                <span className="text-sm">Đang bơm dữ liệu vào RAM...</span>
               </div>
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <div className="bg-slate-950 p-4 rounded-lg border border-slate-800">
-                  <p className="text-xs text-slate-500 uppercase">Độ trễ phát hiện (Delay)</p>
-                  <p className="text-lg font-bold text-slate-200 mt-1">2.4s</p>
-                </div>
-                <div className="bg-slate-950 p-4 rounded-lg border border-slate-800">
-                  <p className="text-xs text-slate-500 uppercase">Độ chính xác (Diagnosis Accuracy)</p>
-                  <p className="text-lg font-bold text-slate-200 mt-1">100%</p>
-                </div>
+            ) : logs.length > 0 ? (
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs text-slate-400 uppercase bg-slate-900 sticky top-0 border-b border-slate-800">
+                  <tr>
+                    <th className="px-4 py-3">Thời gian</th>
+                    <th className="px-4 py-3">User ID</th>
+                    <th className="px-4 py-3">Movie ID</th>
+                    <th className="px-4 py-3 text-right">Rating</th>
+                    <th className="px-4 py-3">Loại</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {logs.map((log, i) => (
+                    <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-900/50">
+                      <td className="px-4 py-3 text-slate-300 font-mono text-xs">{log.timestamp}</td>
+                      <td className="px-4 py-3 text-slate-200 font-medium">#{log.user_id}</td>
+                      <td className="px-4 py-3 text-slate-400">#{log.movie_id}</td>
+                      <td className="px-4 py-3 text-right">
+                        <span className={`px-2 py-1 rounded text-xs font-bold ${log.score >= 4.0 ? 'bg-emerald-500/20 text-emerald-400' : log.score <= 2.0 ? 'bg-rose-500/20 text-rose-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                          {log.score.toFixed(1)} ★
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-indigo-400 text-xs">{log.type}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="flex items-center justify-center h-full text-slate-600 text-sm">
+                Chưa có luồng dữ liệu nào được bơm.
               </div>
-            </div>
-          ) : (
-            <div className="h-48 flex flex-col items-center justify-center text-slate-500 border border-dashed border-slate-700 rounded-lg bg-slate-950/50">
-              <p className="text-sm">Chưa có phiên mô phỏng nào được chạy.</p>
-              <p className="text-xs mt-1">Vui lòng chọn một loại Drift ở trên.</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         <div data-figma-id="SIM-ACTION" className="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <h3 className="font-semibold text-slate-200 mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-amber-400" /> Quyết định Huấn luyện
+            <AlertTriangle className="w-5 h-5 text-amber-400" /> Tác động hệ thống
           </h3>
           <div className="space-y-4 text-sm text-slate-300">
-            {simulationResult ? (
-              <div className="p-3 bg-slate-800 rounded border border-slate-700">
-                <p className="font-mono text-emerald-400 mb-2">» EXPECTED ACTION</p>
-                Hệ thống xác nhận cần chạy lại Component <b>Cluster Logistic</b> dựa trên nhiễu được tiêm.
+            {simulationResult && simulationResult.type !== 'None' ? (
+              <div className="p-3 bg-rose-500/10 rounded border border-rose-500/30 text-rose-300">
+                <p className="font-mono text-rose-400 mb-2 font-bold">» SYSTEM ALERT</p>
+                200 điểm số rác đã được bơm thẳng vào mảng <code className="bg-rose-500/20 px-1 rounded">recent_scores</code>. <br/><br/>
+                Hành động tiếp theo: <br/>
+                Hãy qua tab <b>Giám sát Trôi dạt</b> để xem biểu đồ KS-Test sụp đổ ngay lập tức!
+              </div>
+            ) : simulationResult?.type === 'None' ? (
+              <div className="p-3 bg-emerald-500/10 rounded border border-emerald-500/30 text-emerald-300">
+                <p className="font-mono text-emerald-400 mb-2 font-bold">» SYSTEM CLEARED</p>
+                Đã xóa sạch bộ nhớ tạm. Hệ thống đã trở về trạng thái ổn định.
               </div>
             ) : (
-              <p className="text-slate-500 text-center py-8">Chưa có kết quả.</p>
+              <p className="text-slate-500 text-center py-8">Bấm Bơm Nhiễu để kiểm thử.</p>
             )}
           </div>
         </div>

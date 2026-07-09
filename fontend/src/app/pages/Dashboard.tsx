@@ -29,6 +29,8 @@ export default function Dashboard() {
   const [status, setStatus] = useState<any>(null);
   const [detectStatus, setDetectStatus] = useState<any>(null);
   const [metricsHistory, setMetricsHistory] = useState<any[]>([]);
+  const [isRetrainModalOpen, setIsRetrainModalOpen] = useState(false);
+  const [retrainStatus, setRetrainStatus] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,8 +48,38 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    let interval: any;
+    if (isRetrainModalOpen) {
+      const fetchRetrainStatus = async () => {
+        try {
+          const res = await fetch('http://127.0.0.1:8000/retrain/status');
+          const data = await res.json();
+          setRetrainStatus(data);
+          // Auto close modal after successful completion and wait a bit
+          if (data.status === 'completed') {
+            setTimeout(() => setIsRetrainModalOpen(false), 3000);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+      fetchRetrainStatus();
+      interval = setInterval(fetchRetrainStatus, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isRetrainModalOpen]);
+
+  const handleStartRetrain = async () => {
+    try {
+      await fetch('http://127.0.0.1:8000/retrain/start', { method: 'POST' });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 relative">
       <div className="flex justify-between items-end">
         <div>
           <h1 className="text-2xl font-bold text-slate-100 tracking-tight">Tổng quan Hệ thống</h1>
@@ -57,7 +89,11 @@ export default function Dashboard() {
           <button data-figma-id="BTN-001" className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-sm font-medium transition-colors">
             Xuất Báo cáo
           </button>
-          <button data-figma-id="BTN-002" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors shadow-[0_0_15px_rgba(79,70,229,0.3)]">
+          <button 
+            data-figma-id="BTN-002" 
+            onClick={() => setIsRetrainModalOpen(true)}
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors shadow-[0_0_15px_rgba(79,70,229,0.3)]"
+          >
             Huấn luyện lại Thủ công
           </button>
         </div>
@@ -132,7 +168,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div data-figma-id="LIST-001" className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-5">
           <div className="flex justify-between items-center mb-4">
@@ -171,11 +206,82 @@ export default function Dashboard() {
 
         <div data-figma-id="PANEL-001" className="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <h3 className="font-semibold text-slate-200 mb-4">Trạng thái Huấn luyện lại</h3>
-          <div className="h-48 flex flex-col items-center justify-center text-slate-500 border border-dashed border-slate-700 rounded-lg bg-slate-950/50">
-            {/* Empty UI */}
+          <div className="h-48 flex flex-col items-center justify-center text-slate-500 border border-dashed border-slate-700 rounded-lg bg-slate-950/50 p-4 text-center">
+            {retrainStatus?.status === 'running' || retrainStatus?.status === 'starting' ? (
+              <div className="w-full">
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-indigo-400">{retrainStatus.message}</span>
+                  <span className="text-slate-300">{retrainStatus.progress}%</span>
+                </div>
+                <div className="w-full bg-slate-800 rounded-full h-2">
+                  <div className="bg-indigo-500 h-2 rounded-full transition-all duration-500" style={{ width: `${retrainStatus.progress}%` }}></div>
+                </div>
+              </div>
+            ) : retrainStatus?.status === 'completed' ? (
+              <div className="text-emerald-400 text-sm">
+                <CheckCircle className="w-8 h-8 mx-auto mb-2 text-emerald-500" />
+                Mô hình đã được cập nhật thành công!
+              </div>
+            ) : (
+              <p className="text-sm">Chưa có tiến trình học nào đang chạy.</p>
+            )}
           </div>
         </div>
       </div>
+
+      {isRetrainModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200">
+            <h2 className="text-xl font-bold text-slate-100 mb-2 flex items-center gap-2">
+              <Zap className="w-5 h-5 text-indigo-400" /> Huấn luyện Thích ứng (Adaptive Learning)
+            </h2>
+            
+            <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700 mb-6 text-sm text-slate-300 space-y-3">
+              <p>
+                <strong className="text-rose-400">Tại sao phải Huấn luyện lại?</strong><br/>
+                Hệ thống phát hiện luồng dữ liệu tương tác thực tế (Live Traffic) đang chệch hướng nghiêm trọng so với kiến thức cũ của AI (Concept Drift). Nếu không can thiệp, AI sẽ tiếp tục gợi ý sai.
+              </p>
+              <p>
+                <strong className="text-emerald-400">Quá trình này làm gì?</strong><br/>
+                Nó sẽ gom toàn bộ dữ liệu mới nhất (bao gồm cả dữ liệu nhiễu), đẩy vào Pipeline và ép mô hình SVD cập nhật lại trọng số ma trận. Khi học xong, nó sẽ Hot-swap (thay nóng) vào bộ nhớ để hệ thống hoạt động chính xác trở lại.
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-slate-400">Tiến độ:</span>
+                <span className="font-mono text-indigo-400">{retrainStatus?.progress || 0}%</span>
+              </div>
+              <div className="w-full bg-slate-800 rounded-full h-3">
+                <div 
+                  className="bg-gradient-to-r from-indigo-500 to-purple-500 h-3 rounded-full transition-all duration-500" 
+                  style={{ width: `${retrainStatus?.progress || 0}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-slate-500 mt-2 text-center h-4">
+                {retrainStatus?.message || "Đang chờ khởi chạy..."}
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setIsRetrainModalOpen(false)}
+                className="px-4 py-2 bg-transparent hover:bg-slate-800 text-slate-300 rounded-lg text-sm font-medium transition-colors"
+                disabled={retrainStatus?.status === 'running' || retrainStatus?.status === 'starting'}
+              >
+                Đóng
+              </button>
+              <button 
+                onClick={handleStartRetrain}
+                disabled={retrainStatus?.status === 'running' || retrainStatus?.status === 'starting'}
+                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors shadow-lg"
+              >
+                {retrainStatus?.status === 'running' || retrainStatus?.status === 'starting' ? 'Đang Huấn luyện...' : 'Bắt đầu Huấn luyện'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,1 @@
+{"status": "error", "progress": 0, "message": "Exception: 'RecommendationService' object has no attribute 'load_model'"}

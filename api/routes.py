@@ -6,11 +6,14 @@ from api.services.simulation_service import SimulationService
 from api.services.evaluation_service import EvaluationService
 from api.services.drift_monitoring_service import DriftMonitoringService
 
+from api.services.retrain_service import RetrainService
+
 router = APIRouter()
 rec_service = RecommendationService()
-sim_service = SimulationService()
+sim_service = SimulationService(rec_service)
 eval_service = EvaluationService(rec_service)
 drift_service = DriftMonitoringService(rec_service)
+retrain_service = RetrainService(rec_service)
 
 class RecRequest(BaseModel):
     user_id: str
@@ -48,14 +51,25 @@ def rollback_model(request: RollbackRequest):
 
 @router.post("/simulate")
 def simulate_drift(payload: Dict[str, Any]):
-    # Clear recommendation cache and recent scores so the new state takes effect immediately
+    # Clear recommendation cache so the new state takes effect immediately
     rec_service.cache.cache.clear()
-    rec_service.recent_scores.clear()
     return sim_service.inject_drift(payload.get("type", "Unknown"), payload.get("severity", 0.0))
+
+@router.get("/simulate/logs")
+def get_simulation_logs():
+    return sim_service.get_logs()
 
 @router.get("/metrics")
 def get_metrics():
     return eval_service.evaluate()
+
+@router.post("/retrain/start")
+def start_retraining():
+    return retrain_service.start_retraining()
+
+@router.get("/retrain/status")
+def get_retrain_status():
+    return retrain_service.get_status()
 
 import json
 import os

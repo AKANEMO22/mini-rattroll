@@ -10,24 +10,34 @@ from src.pipeline.steps import TrainMFStep
 from src.recommender.matrix_factorization.svd_model import SVDModel
 
 def run_training_pipeline():
-    print("Initializing Pipeline...")
+    import json
+    
+    def update_status(status_str, progress, message):
+        print(message)
+        status_data = {
+            "status": status_str,
+            "progress": progress,
+            "message": message
+        }
+        os.makedirs('data', exist_ok=True)
+        with open('data/retrain_status.json', 'w') as f:
+            json.dump(status_data, f)
+            
+    update_status("running", 5, "Initializing Pipeline...")
     pipeline = Pipeline()
     
     # We create a step with our SVDModel
     mf_model = SVDModel(n_factors=50)
     pipeline.add_step(TrainMFStep(mf_model))
     
-    print("Loading ML-25M dataset (This might take a moment)...")
+    update_status("running", 10, "Loading ML-25M dataset (This might take a moment)...")
     movies_df = pd.read_csv('data/ml-25m/movies.csv')
     
     # For full 25M dataset, we read directly. 
     # Pandas handles 25M rows of 4 columns comfortably on modern machines (~1GB RAM).
     ratings_df = pd.read_csv('data/ml-25m/ratings.csv', usecols=['userId', 'movieId', 'rating'])
     
-    print(f"Loaded {len(ratings_df)} ratings.")
-    
-    # Building User/Item mappings
-    print("Building Mappings and Sparse Matrix...")
+    update_status("running", 30, f"Loaded {len(ratings_df)} ratings. Building Mappings and Sparse Matrix...")
     users = ratings_df['userId'].unique()
     items = ratings_df['movieId'].unique()
     
@@ -48,11 +58,11 @@ def run_training_pipeline():
         'item_to_index': item_to_index
     }
     
-    print("Running Pipeline Execution (Training SVD on 25M ratings)...")
+    update_status("running", 50, "Running Pipeline Execution (Training SVD on 25M ratings)...")
     # This executes mf_model.fit inside the step
     pipeline.run(context)
     
-    print("Saving trained model to models/svd_model.pkl...")
+    update_status("running", 90, "Saving trained model to models/svd_model.pkl...")
     os.makedirs('models', exist_ok=True)
     
     # We save the model and the movies dataframe
@@ -64,7 +74,7 @@ def run_training_pipeline():
     with open('models/svd_model.pkl', 'wb') as f:
         pickle.dump(model_data, f)
         
-    print("Pipeline Execution Completed Successfully!")
+    update_status("completed", 100, "Pipeline Execution Completed Successfully!")
 
 if __name__ == '__main__':
     run_training_pipeline()
