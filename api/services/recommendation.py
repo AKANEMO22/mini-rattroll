@@ -18,25 +18,37 @@ class RecommendationService:
         self.history_log: List[RecommendationHistory] = []
         self.recent_scores: List[float] = []
         self.model = None
+        self.cluster_model = None
+        self.ranker_model = None
+        self.meta_model = None
         self.movies_df = None
         self._load_model()
 
     def _load_model(self):
-        model_path = "models/svd_model.pkl"
+        from src.recommender.registry import ModelRegistry
+        registry = ModelRegistry("models")
+        model_path = registry.get_active_model_path()
+        if not model_path:
+            model_path = "models/svd_model.pkl"
+            
         if os.path.exists(model_path):
             with open(model_path, 'rb') as f:
                 data = pickle.load(f)
-                self.model = data['model']
-                self.movies_df = data['movies_df']
-                print(f"Loaded SVD model and {len(self.movies_df)} movies.")
+                self.model = data.get('model')
+                self.cluster_model = data.get('cluster_model')
+                self.ranker_model = data.get('ranker_model')
+                self.meta_model = data.get('meta_model')
+                self.movies_df = data.get('movies_df')
+                print(f"Loaded Multi-stage models and {len(self.movies_df)} movies.")
 
-    def get_recommendations(self, user_id: str, top_k: int = 10) -> List[Dict[str, Any]]:
+    def get_recommendations(self, user_id: str, top_k: int = 10) -> tuple:
         cache_key = f"{user_id}_{top_k}"
         cached = self.cache.get(cache_key)
         if cached:
             return cached
             
         items = []
+        user_cluster_id = None
         
         if self.model and self.movies_df is not None:
             uid = int(user_id) if str(user_id).isdigit() else 1
@@ -48,21 +60,39 @@ class RecommendationService:
                 user_idx = self.model.user_to_index[uid]
                 user_factor = self.model.user_factors[user_idx]
                 
-                # Vectorized prediction
-                scores = self.model.item_factors.dot(user_factor)
+                if self.cluster_model:
+                    user_cluster_id = self.cluster_model.assign(user_factor)
                 
-                # Get top K indices
-                top_indices = scores.argsort()[-top_k:][::-1]
+                # Phase 1: Retrieval (SVD)
+                svd_scores = self.model.item_factors.dot(user_factor)
                 
-                # Dynamic normalization for realistic UI display
-                # We want the highest score to be around 4.9 (98%), and lower ones scaled proportionally
-                top_scores = scores[top_indices]
-                max_raw = float(np.max(top_scores))
-                min_raw = float(np.min(top_scores))
+                # To prevent massive latency, we only re-rank the top 100 SVD items
+                top_100_indices = svd_scores.argsort()[-100:][::-1]
                 
-                for i, idx in enumerate(top_indices):
+                final_scores = []
+                for idx in top_100_indices:
+                    i_factor = self.model.item_factors[idx]
+                    svd_score = float(svd_scores[idx])
+                    
+                    if self.ranker_model and self.meta_model and user_cluster_id is not None:
+                        # Phase 2: Re-ranking
+                        lr_score = self.ranker_model.predict(user_cluster_id, i_factor)
+                        # Phase 3: Blending
+                        final_score = self.meta_model.blend_scores(svd_score, lr_score)
+                    else:
+                        final_score = svd_score
+                        
+                    final_scores.append((idx, final_score))
+                
+                final_scores.sort(key=lambda x: x[1], reverse=True)
+                top_k_items = final_scores[:top_k]
+                
+                raw_scores = [x[1] for x in top_k_items]
+                max_raw = max(raw_scores) if raw_scores else 1.0
+                min_raw = min(raw_scores) if raw_scores else 0.0
+                
+                for idx, raw_score in top_k_items:
                     item_id = self.model.index_to_item[idx]
-                    raw_score = float(scores[idx])
                     
                     # If all top scores are exactly the same, or just to be safe
                     if max_raw > min_raw:
@@ -116,8 +146,11 @@ class RecommendationService:
             user_id=str(user_id),
             latency_ms=15.4,
             timestamp=datetime.now(),
-            model_version="v2.1"
+            model_version="v2.1",
+            cluster_id=user_cluster_id
         )
         self.history_log.append(history_record)
         
-        return items
+        result = (items, user_cluster_id)
+        self.cache.set(cache_key, result)
+        return result

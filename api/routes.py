@@ -21,8 +21,8 @@ class RecRequest(BaseModel):
 
 @router.post("/recommend")
 def recommend(request: RecRequest):
-    items = rec_service.get_recommendations(request.user_id, request.top_k)
-    return {"user_id": request.user_id, "recommendations": items}
+    items, cluster_id = rec_service.get_recommendations(request.user_id, request.top_k)
+    return {"user_id": request.user_id, "cluster_id": cluster_id, "recommendations": items}
 
 @router.get("/status")
 def get_status():

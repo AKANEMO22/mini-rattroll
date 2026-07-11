@@ -28,9 +28,11 @@ class RetrainService:
             result = subprocess.run(["python", "train_pipeline.py"], capture_output=True, text=True)
             if result.returncode == 0:
                 # Reload model into RecommendationService
-                self.rec_service.load_model()
+                self.rec_service._load_model()
                 # Clear recent scores so Drift turns green again
                 self.rec_service.recent_scores.clear()
+                # Clear cache so new recommendations use the newly trained model
+                self.rec_service.cache.cache.clear()
             else:
                 with open(self.status_file, "w") as f:
                     json.dump({"status": "error", "progress": 0, "message": f"Error: {result.stderr}"}, f)

@@ -38,6 +38,7 @@ class RecommendationHistory(BaseModel):
     latency_ms: float
     timestamp: datetime
     model_version: str
+    cluster_id: Optional[int] = None
 
 class DriftEvent(BaseModel):
     metric_name: str
