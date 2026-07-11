@@ -1,1 +1,1 @@
-{"status": "completed", "progress": 100, "message": "Pipeline Execution Completed Successfully! Activated v20260711_153510"}
+{"status": "error", "progress": 0, "message": "Exception: 'RecommendationService' object has no attribute 'recent_scores'"}

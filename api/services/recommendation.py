@@ -16,7 +16,7 @@ class RecommendationService:
     def __init__(self):
         self.cache = RecommendationCache()
         self.history_log: List[RecommendationHistory] = []
-        self.recent_scores: List[float] = []
+        self.recent_events: List[Dict[str, Any]] = [] # stores {'cluster_id': int, 'score': float}
         self.model = None
         self.cluster_model = None
         self.ranker_model = None
@@ -41,8 +41,9 @@ class RecommendationService:
                 self.movies_df = data.get('movies_df')
                 print(f"Loaded Multi-stage models and {len(self.movies_df)} movies.")
 
-    def get_recommendations(self, user_id: str, top_k: int = 10) -> tuple:
-        cache_key = f"{user_id}_{top_k}"
+    def get_recommendations(self, user_id: str, top_k: int = 10, log_event: bool = True):
+        # 1. Check cache first
+        cache_key = f"rec_{user_id}_{top_k}"
         cached = self.cache.get(cache_key)
         if cached:
             return cached
@@ -104,6 +105,15 @@ class RecommendationService:
                     # Add a tiny bit of random noise (-0.05 to +0.05) to break exact ties naturally
                     display_score = min(4.98, max(1.0, normalized + np.random.uniform(-0.02, 0.02)))
                     
+                    # Store event for drift detection only if it's real traffic
+                    if log_event:
+                        self.recent_events.append({
+                            "cluster_id": user_cluster_id if user_cluster_id is not None else 0,
+                            "score": display_score
+                        })
+                        if len(self.recent_events) > 1000:
+                            self.recent_events.pop(0)
+
                     movie_row = self.movies_df[self.movies_df['movieId'] == item_id]
                     if not movie_row.empty:
                         title = movie_row.iloc[0]['title']
@@ -132,11 +142,7 @@ class RecommendationService:
                         "score": 0.0
                     })
                 
-        # Record scores for drift monitoring
-        if items:
-            self.recent_scores.extend([item['score'] for item in items])
-            if len(self.recent_scores) > 200:
-                self.recent_scores = self.recent_scores[-200:]
+        # Record scores for drift monitoring (moved into the loop above)
         
         self.cache.set(cache_key, items)
         

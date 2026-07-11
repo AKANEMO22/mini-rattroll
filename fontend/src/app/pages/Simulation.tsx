@@ -17,6 +17,10 @@ export default function Simulation() {
     }
   };
 
+  React.useEffect(() => {
+    fetchLogs();
+  }, []);
+
   const handleSimulate = async (type: string) => {
     setIsSimulating(true);
     setSimulationResult(null);

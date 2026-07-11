@@ -1,10 +1,63 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, AlertTriangle, TrendingDown, Thermometer, BarChart2 } from 'lucide-react';
+import { Activity, AlertTriangle, TrendingDown, Thermometer, BarChart2, ShieldCheck, ChevronRight, Zap, PlayCircle, RefreshCw } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { api } from '../services/api';
 
 export default function DriftMonitoring() {
   const [detectStatus, setDetectStatus] = useState<any>(null);
+  const [retrainStatus, setRetrainStatus] = useState<any>(null);
+
+  const renderHeatmap = () => {
+    if (!detectStatus?.heatmap_data || detectStatus.heatmap_data.length === 0) {
+      return (
+        <div className="h-64 flex flex-col items-center justify-center text-slate-500 bg-slate-950 rounded-lg border border-slate-800">
+          Chưa đủ dữ liệu Cụm...
+        </div>
+      );
+    }
+
+    const bins = ["1.0", "1.5", "2.0", "2.5", "3.0", "3.5", "4.0", "4.5"];
+    
+    return (
+      <div className="overflow-auto bg-slate-950 rounded-lg p-4 border border-slate-800 h-64">
+        <div className="flex text-xs text-slate-400 mb-2">
+          <div className="w-20 flex-shrink-0"></div>
+          {bins.map(b => (
+            <div key={b} className="flex-1 text-center font-mono">{b}</div>
+          ))}
+        </div>
+        
+        {detectStatus.heatmap_data.map((row: any, i: number) => (
+          <div key={i} className="flex items-center mb-1">
+            <div className="w-20 flex-shrink-0 text-xs text-slate-300 font-medium">
+              {row.cluster}
+            </div>
+            {bins.map(b => {
+              const val = row[b] || 0;
+              let bgColor = "bg-slate-800";
+              if (val < -10) bgColor = "bg-rose-600";
+              else if (val < -5) bgColor = "bg-rose-500/80";
+              else if (val < -1) bgColor = "bg-rose-500/40";
+              else if (val > 10) bgColor = "bg-emerald-500";
+              else if (val > 5) bgColor = "bg-emerald-500/80";
+              else if (val > 1) bgColor = "bg-emerald-500/40";
+              
+              return (
+                <div 
+                  key={b} 
+                  className={`flex-1 h-4 mx-0.5 rounded-sm ${bgColor} transition-colors cursor-pointer group relative`}
+                >
+                  <div className="absolute hidden group-hover:block bottom-full mb-1 left-1/2 -translate-x-1/2 bg-slate-800 text-slate-200 text-[10px] px-1.5 py-0.5 rounded shadow-lg z-10 whitespace-nowrap">
+                    {val > 0 ? '+' : ''}{val}%
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    );
+  };
   
   // Use real distribution data from the API if available
   const getChartData = () => {
@@ -106,51 +159,11 @@ export default function DriftMonitoring() {
             <h3 className="font-semibold text-slate-200">Heatmap Cảnh báo</h3>
             <span className="text-xs font-mono text-slate-600">CHART-005</span>
           </div>
-          <div className="h-64 flex flex-col items-center justify-center text-slate-500 bg-slate-950 rounded-lg border border-slate-800">
-            {/* Empty UI */}
-          </div>
+          {renderHeatmap()}
         </div>
       </div>
 
-      <div data-figma-id="DRIFT-TABLE" className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-        <h3 className="font-semibold text-slate-200 mb-4 flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-rose-400" /> Lịch sử Cảnh báo
-        </h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="text-xs text-slate-500 uppercase bg-slate-800/50">
-              <tr>
-                <th className="px-4 py-3 rounded-l-lg">Thời gian</th>
-                <th className="px-4 py-3">Loại Trôi dạt</th>
-                <th className="px-4 py-3">P-Value</th>
-                <th className="px-4 py-3">Thành phần bị Ảnh hưởng</th>
-                <th className="px-4 py-3 rounded-r-lg">Quyết định</th>
-              </tr>
-            </thead>
-            <tbody>
-              {detectStatus?.is_drift ? (
-                <tr className="bg-rose-500/10 border-b border-slate-800/50">
-                  <td className="px-4 py-3 text-slate-300">{new Date().toLocaleTimeString()}</td>
-                  <td className="px-4 py-3 text-rose-400 font-medium">Concept Drift</td>
-                  <td className="px-4 py-3 text-slate-300 font-mono">{detectStatus.p_value}</td>
-                  <td className="px-4 py-3 text-slate-300">Distribution of Recommendation Scores</td>
-                  <td className="px-4 py-3">
-                    <span className="px-2 py-1 rounded bg-rose-500/20 text-rose-400 text-xs border border-rose-500/30">
-                      Trigger Retraining
-                    </span>
-                  </td>
-                </tr>
-              ) : (
-                <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
-                    Chưa có cảnh báo nào trong hệ thống. (Hệ thống Ổn định)
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+
     </div>
   );
 }

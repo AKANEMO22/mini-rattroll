@@ -10,17 +10,17 @@ class DriftMonitoringService:
         self.drift_detector = StatisticalDriftDetector()
         
     def get_detect_status(self):
-        # In a real system, traffic is continuous. For the demo, if we don't have enough recent scores,
-        # we auto-generate some traffic to evaluate the current model state.
-        if len(self.rec_service.recent_scores) < 20:
-            for _ in range(5):
-                _ = self.rec_service.get_recommendations(str(random.randint(1, 10000)), top_k=10)
-                
-        recent_scores = self.rec_service.recent_scores
+        if getattr(self.rec_service, 'recent_events', None) is not None:
+            recent_events = self.rec_service.recent_events
+        else:
+            # Fallback for old attribute
+            recent_events = [{"cluster_id": 0, "score": s} for s in getattr(self.rec_service, 'recent_scores', [])]
+            
+        recent_scores = [e['score'] for e in recent_events]
         
         # We need at least some recent scores to compare
         if len(recent_scores) < 20:
-            return {"is_drift": False, "p_value": 1.0, "drift_score": 0.0, "ctr_fluctuation": 0.0, "chart_data": []}
+            return {"is_drift": False, "p_value": 1.0, "drift_score": 0.0, "ctr_fluctuation": 0.0, "chart_data": [], "heatmap_data": []}
             
         # Get baseline scores from standard pipeline module
         baseline_scores = self.baseline_manager.get_expected_distribution(size=max(200, len(recent_scores)))
@@ -57,8 +57,6 @@ class DriftMonitoringService:
         # ---------------------------------------------------------
         # CALCULATE REAL CTR FLUCTUATION
         # ---------------------------------------------------------
-        # We proxy CTR by the mean predicted score. If the model is predicting lower scores,
-        # users are theoretically less likely to click.
         mean_baseline = float(np.mean(baseline_scores)) if baseline_scores else 0
         mean_current = float(np.mean(recent_scores)) if recent_scores else 0
         
@@ -67,10 +65,32 @@ class DriftMonitoringService:
         else:
             ctr_fluctuation = 0.0
             
+        # ---------------------------------------------------------
+        # CALCULATE HEATMAP DATA (Cluster vs Rating Drift)
+        # ---------------------------------------------------------
+        heatmap_data = []
+        for cluster_id in range(10):
+            c_scores = [e['score'] for e in recent_events if e.get('cluster_id', 0) == cluster_id]
+            if not c_scores:
+                # If no traffic for this cluster yet, it's not drifting, it's just empty.
+                # So the delta should be 0.
+                c_delta = np.zeros_like(baseline_pct)
+            else:
+                c_hist, _ = np.histogram(c_scores, bins=bins)
+                c_pct = (c_hist / len(c_scores)) * 100
+                c_delta = c_pct - baseline_pct
+            
+            row = {"cluster": f"Cluster {cluster_id}"}
+            for i in range(len(bins) - 1):
+                rating_label = f"{bins[i]:.1f}"
+                row[rating_label] = round(float(c_delta[i]), 1)
+            heatmap_data.append(row)
+            
         return {
             "is_drift": is_drift,
             "p_value": round(p_value, 4),
             "drift_score": round(stat, 4),
             "ctr_fluctuation": round(ctr_fluctuation, 2),
-            "chart_data": chart_data
+            "chart_data": chart_data,
+            "heatmap_data": heatmap_data
         }

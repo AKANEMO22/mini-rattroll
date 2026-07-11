@@ -31,14 +31,14 @@ class EvaluationService:
 
         all_user_scores = []
         for u in users:
-            items, _ = self.rec_service.get_recommendations(str(u), top_k=10)
+            items, _ = self.rec_service.get_recommendations(str(u), top_k=10, log_event=False)
             if not items:
                 continue
             scores = [item.get("score", 0) for item in items]
-            all_user_scores.append(scores)
+            all_user_scores.append((str(u), scores))
             
         # 3. Call standard pipeline evaluator
-        metrics = self.evaluator.evaluate_online_proxy(all_user_scores)
+        metrics = self.evaluator.evaluate_online_proxy(all_user_scores, self.rec_service.model)
         
         latency = (time.time() - start_time) * 1000 # in ms
         metrics["timestamp"] = datetime.now().strftime("%H:%M:%S")

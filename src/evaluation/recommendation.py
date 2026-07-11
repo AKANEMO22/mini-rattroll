@@ -9,7 +9,7 @@ class RecEvaluator(BaseEvaluator):
         """Standard offline evaluation (Not used in live monitoring)"""
         return {"ndcg": 0.0, "map": 0.0, "precision": 0.0, "recall": 0.0, "rmse": 0.0}
 
-    def evaluate_online_proxy(self, all_user_scores: List[List[float]]) -> Dict[str, float]:
+    def evaluate_online_proxy(self, all_user_data: List[tuple], model=None) -> Dict[str, float]:
         """
         Calculates proxy metrics for online live monitoring based on predicted scores.
         Assumes score >= 4.0 is 'relevant' and expected ideal score is 4.5.
@@ -18,9 +18,10 @@ class RecEvaluator(BaseEvaluator):
         total_ndcg = 0.0
         total_ap = 0.0
         total_squared_error = 0.0
+        total_recall = 0.0
         error_count = 0
         
-        for user_scores in all_user_scores:
+        for user_id, user_scores in all_user_data:
             if not user_scores:
                 continue
                 
@@ -48,12 +49,23 @@ class RecEvaluator(BaseEvaluator):
             total_ndcg += user_dcg / user_idcg if user_idcg > 0 else 0
             total_ap += user_ap / user_relevant if user_relevant > 0 else 0
             
-        num_users = len(all_user_scores) if all_user_scores else 1
+            # Calculate true recall for this user
+            if model and hasattr(model, 'user_relevant_count'):
+                total_relevant_in_db = model.user_relevant_count.get(str(user_id), 0)
+                if total_relevant_in_db > 0:
+                    user_recall = user_relevant / total_relevant_in_db
+                else:
+                    user_recall = 0.0
+                total_recall += user_recall
+            else:
+                total_recall += (user_relevant / num_items) * 0.85 # Fallback
+            
+        num_users = len(all_user_data) if all_user_data else 1
         
         precision = total_precision / num_users
         ndcg = total_ndcg / num_users
         map_score = total_ap / num_users
-        recall = precision * 0.85 # Approximation heuristic
+        recall = total_recall / num_users
         rmse = (total_squared_error / error_count) ** 0.5 if error_count > 0 else 0.0
         
         return {

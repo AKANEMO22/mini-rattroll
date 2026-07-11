@@ -26,6 +26,9 @@ def recommend(request: RecRequest):
 
 @router.get("/status")
 def get_status():
+    retrain_state = retrain_service.get_status()
+    if retrain_state.get("status") in ["starting", "running"]:
+        return {"status": "OK", "state": "Retraining"}
     return {"status": "OK", "state": "Monitoring"}
 
 @router.get("/detect_status")

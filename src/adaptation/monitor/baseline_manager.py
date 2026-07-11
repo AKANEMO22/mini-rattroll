@@ -24,12 +24,14 @@ class BaselineManager:
         False Positives in KS-Test.
         """
         baseline_scores = []
+        # Use a local random generator so we don't break global randomness
+        rng = np.random.default_rng(42)
         # Each recommendation call generates 10 items.
         num_calls = max(1, size // 10)
         
         for _ in range(num_calls):
             # Simulate the SVD score distribution for a user's items
-            simulated_scores = np.random.normal(0, 1, 1000)
+            simulated_scores = rng.normal(0, 1, 1000)
             top_scores = np.sort(simulated_scores)[-10:][::-1]
             
             max_raw = float(np.max(top_scores))
@@ -40,7 +42,7 @@ class BaselineManager:
                     normalized = 4.0 + ((score - min_raw) / (max_raw - min_raw)) * 0.9
                 else:
                     normalized = 4.5
-                display_score = min(4.98, max(1.0, normalized + np.random.uniform(-0.02, 0.02)))
+                display_score = min(4.98, max(1.0, normalized + rng.uniform(-0.02, 0.02)))
                 baseline_scores.append(display_score)
                 
         return baseline_scores[:size]

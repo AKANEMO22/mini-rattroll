@@ -14,6 +14,7 @@ class SVDModel(BaseMF):
         self.item_to_index = {}
         self.index_to_user = {}
         self.index_to_item = {}
+        self.user_relevant_count = {}
 
     def fit(self, data: Any) -> None:
         """
@@ -27,6 +28,15 @@ class SVDModel(BaseMF):
         self.item_to_index = data['item_to_index']
         self.index_to_user = {idx: uid for uid, idx in self.user_to_index.items()}
         self.index_to_item = {idx: iid for iid, idx in self.item_to_index.items()}
+        
+        # Calculate true relevant items per user for exact Recall evaluation
+        self.user_relevant_count = {}
+        for u_idx in range(sparse_matrix.shape[0]):
+            row = sparse_matrix.getrow(u_idx)
+            relevant_count = np.sum(row.data >= 4.0)
+            uid = self.index_to_user.get(u_idx)
+            if uid is not None:
+                self.user_relevant_count[str(uid)] = int(relevant_count)
         
         n_components = min(self.n_factors, sparse_matrix.shape[1] - 1)
         svd = TruncatedSVD(n_components=n_components, random_state=42)

@@ -41,8 +41,13 @@ class SimulationService:
         return []
 
     def inject_drift(self, drift_type: str, severity: float):
-        if drift_type == "None":
+        # Always clear previous data before a new test to ensure distinct charts
+        if hasattr(self.rec_service, 'recent_events'):
+            self.rec_service.recent_events.clear()
+        else:
             self.rec_service.recent_scores.clear()
+            
+        if drift_type == "None":
             self.reset_state()
             return {"status": "success", "message": "Cleared all simulated data."}
             
@@ -77,7 +82,20 @@ class SimulationService:
             })
             
         # Push into rec_service to trigger monitoring
-        self.rec_service.recent_scores.extend(noise_scores)
+        # We now use recent_events (Dict with cluster_id) instead of recent_scores (raw floats)
+        synthetic_events = []
+        for score in noise_scores:
+            synthetic_events.append({
+                "cluster_id": random.randint(0, 9),
+                "score": score
+            })
+            
+        if hasattr(self.rec_service, 'recent_events'):
+            self.rec_service.recent_events.extend(synthetic_events)
+            if len(self.rec_service.recent_events) > 1000:
+                self.rec_service.recent_events = self.rec_service.recent_events[-1000:]
+        else:
+            self.rec_service.recent_scores.extend(noise_scores)
         
         # Save logs
         with open(self.log_file, 'w') as f:
