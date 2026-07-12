@@ -58,7 +58,7 @@ export default function UserProfile() {
               <span className="text-xs text-slate-500 uppercase">Cụm sở thích (Cluster)</span>
               <p className="text-sm font-medium text-slate-300 mt-1 flex items-center gap-2">
                 <Tag className="w-4 h-4 text-emerald-400" />
-                {profileData ? 'Cluster-A' : '---'}
+                {profileData ? (profileData.cluster_id != null ? 'Cluster-' + String.fromCharCode(65 + profileData.cluster_id) : 'Chưa phân cụm') : '---'}
               </p>
             </div>
             <div>

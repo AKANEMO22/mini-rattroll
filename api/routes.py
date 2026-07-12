@@ -94,7 +94,21 @@ def search_movies(q: str = ""):
 
 @router.get("/users/{user_id}")
 def get_user_profile(user_id: int):
-    return data_service.get_user_profile(user_id)
+    profile = data_service.get_user_profile(user_id)
+    try:
+        if rec_service.model and user_id in rec_service.model.user_to_index:
+            user_idx = rec_service.model.user_to_index[user_id]
+            user_factor = rec_service.model.user_factors[user_idx]
+            if rec_service.cluster_model:
+                cluster_id = rec_service.cluster_model.assign(user_factor)
+                profile["cluster_id"] = int(cluster_id)
+            else:
+                profile["cluster_id"] = None
+        else:
+            profile["cluster_id"] = None
+    except Exception:
+        profile["cluster_id"] = None
+    return profile
 
 @router.get("/history")
 def get_global_history():
