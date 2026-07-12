@@ -9,6 +9,10 @@ class RetrainService:
         self.status_file = "data/retrain_status.json"
         
     def start_retraining(self):
+        current_status = self.get_status().get("status")
+        if current_status in ["starting", "running"]:
+            return {"status": "error", "message": "Already retraining"}
+
         # Reset the status file
         os.makedirs("data", exist_ok=True)
         with open(self.status_file, "w") as f:

@@ -1,9 +1,8 @@
 from typing import Dict, Any, Optional
 from scipy import stats
-from src.interfaces.base import BaseDriftDetector
 from src.core.events import EventManager, Event
 
-class StatisticalDriftDetector(BaseDriftDetector):
+class StatisticalDriftDetector:
     """Applies statistical tests (KS-Test) to detect data drift."""
     def __init__(self, event_manager: Optional[EventManager] = None):
         self.event_manager = event_manager

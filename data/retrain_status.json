@@ -1,1 +1,1 @@
-{"status": "error", "progress": 0, "message": "Exception: 'RecommendationService' object has no attribute 'recent_scores'"}
+{"status": "running", "progress": 50, "message": "Running Phase 1: Matrix Factorization (SVD) Training..."}

@@ -1,8 +1,7 @@
 import pandas as pd
-from src.interfaces.base import PipelineStep
 from src.core.contexts import PipelineContext
 
-class PreprocessingStep(PipelineStep):
+class PreprocessingStep:
     """Cleans Raw Dataset and prepares it for feature extraction."""
     def __init__(self, config: dict = None):
         self.config = config or {}

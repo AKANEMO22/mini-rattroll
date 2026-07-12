@@ -166,11 +166,9 @@ def run_training_pipeline():
     }
     
     update_status("running", 95, "Saving artifacts to Model Registry...")
-    version = "v" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    registry.register(version, model_data)
-    registry.activate(version)
+    registry.register("latest", model_data)
         
-    update_status("completed", 100, f"Pipeline Execution Completed Successfully! Activated {version}")
+    update_status("completed", 100, "Pipeline Execution Completed Successfully! Overwrote model.")
 
 if __name__ == '__main__':
     run_training_pipeline()

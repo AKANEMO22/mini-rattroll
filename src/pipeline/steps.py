@@ -1,11 +1,9 @@
-from src.interfaces.base import PipelineStep
 from src.core.contexts import PipelineContext
-from src.interfaces.base import BaseMF, BaseClusterer, BaseRanker
 from src.recommender.meta.stacking import StackingMetaLearner
 
-class TrainMFStep(PipelineStep):
+class TrainMFStep:
     """Pipeline step to train Matrix Factorization."""
-    def __init__(self, mf_model: BaseMF):
+    def __init__(self, mf_model):
         self.mf_model = mf_model
 
     def execute(self, context: PipelineContext) -> None:
@@ -13,9 +11,9 @@ class TrainMFStep(PipelineStep):
         context.embeddings['user'] = getattr(self.mf_model, 'get_user_embeddings', lambda: {})()
         context.models['mf'] = self.mf_model
 
-class TrainKMeansStep(PipelineStep):
+class TrainKMeansStep:
     """Pipeline step to train KMeans Clustering."""
-    def __init__(self, clusterer: BaseClusterer):
+    def __init__(self, clusterer):
         self.clusterer = clusterer
 
     def execute(self, context: PipelineContext) -> None:
@@ -25,16 +23,16 @@ class TrainKMeansStep(PipelineStep):
                 self.clusterer.fit(embeddings_matrix)
         context.models['kmeans'] = self.clusterer
 
-class TrainRankingStep(PipelineStep):
+class TrainRankingStep:
     """Pipeline step to train Cluster-Specific Logistic Regression."""
-    def __init__(self, ranker: BaseRanker):
+    def __init__(self, ranker):
         self.ranker = ranker
 
     def execute(self, context: PipelineContext) -> None:
         self.ranker.fit(context.processed_data)
         context.models['cluster_lr'] = self.ranker
 
-class TrainMetaStep(PipelineStep):
+class TrainMetaStep:
     """Pipeline step to train Stacking Meta Learner."""
     def __init__(self, meta_learner: StackingMetaLearner):
         self.meta_learner = meta_learner

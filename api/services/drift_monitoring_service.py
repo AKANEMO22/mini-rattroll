@@ -4,8 +4,9 @@ from src.adaptation.monitor.baseline_manager import BaselineManager
 from src.adaptation.detector.drift_detector import StatisticalDriftDetector
 
 class DriftMonitoringService:
-    def __init__(self, rec_service):
+    def __init__(self, rec_service, event_manager=None):
         self.rec_service = rec_service
+        self.event_manager = event_manager
         self.baseline_manager = BaselineManager()
         self.drift_detector = StatisticalDriftDetector()
         
@@ -31,6 +32,10 @@ class DriftMonitoringService:
         is_drift = detect_result["is_drift"]
         p_value = detect_result["p_value"]
         stat = detect_result["drift_score"]
+
+        if is_drift and self.event_manager:
+            from src.core.events import Event
+            self.event_manager.publish(Event(name="drift_detected", payload={"p_value": p_value, "score": stat}))
         
         # ---------------------------------------------------------
         # CALCULATE REAL DISTRIBUTION (For the Chart)

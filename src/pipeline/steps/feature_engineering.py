@@ -1,9 +1,8 @@
 import pandas as pd
 from sklearn.decomposition import PCA
-from src.interfaces.base import PipelineStep
 from src.core.contexts import PipelineContext
 
-class FeatureEngineeringStep(PipelineStep):
+class FeatureEngineeringStep:
     """Applies TF-IDF, Encoding, and PCA on Processed Dataset."""
     def __init__(self, n_components: int = 50):
         self.pca = PCA(n_components=n_components, random_state=42)

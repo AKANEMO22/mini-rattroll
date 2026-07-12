@@ -7,13 +7,20 @@ from api.services.evaluation_service import EvaluationService
 from api.services.drift_monitoring_service import DriftMonitoringService
 
 from api.services.retrain_service import RetrainService
+from src.core.events import EventManager
+from src.adaptation.controller import AdaptiveController
 
 router = APIRouter()
 rec_service = RecommendationService()
 sim_service = SimulationService(rec_service)
 eval_service = EvaluationService(rec_service)
-drift_service = DriftMonitoringService(rec_service)
+
+event_manager = EventManager()
+drift_service = DriftMonitoringService(rec_service, event_manager=event_manager)
 retrain_service = RetrainService(rec_service)
+
+adaptive_controller = AdaptiveController(event_manager)
+event_manager.subscribe("start_retraining", lambda e: retrain_service.start_retraining())
 
 class RecRequest(BaseModel):
     user_id: str
@@ -38,10 +45,9 @@ def get_detect_status():
 @router.get("/models")
 def get_models():
     return {
-        "active_version": "v2.1",
+        "active_version": "latest",
         "versions": [
-            {"version": "v2.1", "status": "Active", "metrics": {"ndcg": 0.85}},
-            {"version": "v2.0", "status": "Archived", "metrics": {"ndcg": 0.82}}
+            {"version": "latest", "status": "Active", "metrics": {"ndcg": 0.85}}
         ]
     }
 
@@ -50,7 +56,7 @@ class RollbackRequest(BaseModel):
 
 @router.post("/models/rollback")
 def rollback_model(request: RollbackRequest):
-    return {"status": "success", "message": f"Rolled back to {request.version}"}
+    return {"status": "error", "message": "Rollback is disabled. Models are overwritten."}
 
 @router.post("/simulate")
 def simulate_drift(payload: Dict[str, Any]):

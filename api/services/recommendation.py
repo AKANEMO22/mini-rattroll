@@ -3,7 +3,7 @@ import os
 from typing import List, Dict, Any
 from datetime import datetime
 import numpy as np
-from src.domain.models import RecommendationHistory
+
 
 class RecommendationCache:
     def __init__(self):
@@ -15,7 +15,7 @@ class RecommendationCache:
 class RecommendationService:
     def __init__(self):
         self.cache = RecommendationCache()
-        self.history_log: List[RecommendationHistory] = []
+        self.history_log: List[Dict[str, Any]] = []
         self.recent_events: List[Dict[str, Any]] = [] # stores {'cluster_id': int, 'score': float}
         self.model = None
         self.cluster_model = None
@@ -146,15 +146,15 @@ class RecommendationService:
         
         self.cache.set(cache_key, items)
         
-        # Log History matching Domain Model
-        history_record = RecommendationHistory(
-            req_id=f"req_{datetime.now().timestamp()}",
-            user_id=str(user_id),
-            latency_ms=15.4,
-            timestamp=datetime.now(),
-            model_version="v2.1",
-            cluster_id=user_cluster_id
-        )
+        # Log History using dict
+        history_record = {
+            "req_id": f"req_{datetime.now().timestamp()}",
+            "user_id": str(user_id),
+            "latency_ms": 15.4,
+            "timestamp": datetime.now(),
+            "model_version": "v2.1",
+            "cluster_id": user_cluster_id
+        }
         self.history_log.append(history_record)
         
         result = (items, user_cluster_id)

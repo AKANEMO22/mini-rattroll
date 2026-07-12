@@ -1,8 +1,7 @@
 import math
 from typing import Dict, List
-from src.interfaces.base import BaseEvaluator
 
-class RecEvaluator(BaseEvaluator):
+class RecEvaluator:
     """Evaluates Recommendation Metrics."""
     
     def evaluate(self, predictions: List, ground_truth: List) -> Dict[str, float]:

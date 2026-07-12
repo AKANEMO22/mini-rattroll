@@ -1,9 +1,8 @@
 from typing import Any
 from sklearn.decomposition import PCA
-from src.interfaces.base import PipelineStep
 from src.core.contexts import PipelineContext
 
-class PCAFeatureExtractor(PipelineStep):
+class PCAFeatureExtractor:
     """Applies PCA to reduce dimensionality of sparse feature matrices."""
     def __init__(self, n_components: int = 50):
         self.pca = PCA(n_components=n_components, random_state=42)

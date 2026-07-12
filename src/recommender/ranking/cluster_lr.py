@@ -1,9 +1,8 @@
 from typing import Any, Dict
-from src.interfaces.base import BaseRanker
 from sklearn.linear_model import LogisticRegression
 import numpy as np
 
-class ClusterLRModel(BaseRanker):
+class ClusterLRModel:
     """Logistic Regression trained specifically for a given user cluster."""
     def __init__(self):
         self.models: Dict[int, LogisticRegression] = {}

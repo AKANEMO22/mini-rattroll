@@ -1,9 +1,8 @@
 from typing import Any, Dict
-from src.interfaces.base import BaseMF
 from sklearn.decomposition import TruncatedSVD
 import numpy as np
 
-class SVDModel(BaseMF):
+class SVDModel:
     """Matrix Factorization implementation using SVD."""
     def __init__(self, n_factors: int = 100, lr: float = 0.005):
         self.n_factors = n_factors

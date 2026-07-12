@@ -1,8 +1,7 @@
 from typing import Any
-from src.interfaces.base import BaseClusterer
 from sklearn.cluster import KMeans
 
-class KMeansClusterer(BaseClusterer):
+class KMeansClusterer:
     """K-Means Clustering for User Embeddings."""
     def __init__(self, n_clusters: int = 10):
         self.n_clusters = n_clusters

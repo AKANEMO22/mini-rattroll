@@ -1,9 +1,8 @@
 import pandas as pd
 from typing import Any
-from src.interfaces.base import PipelineStep
 from src.core.contexts import PipelineContext
 
-class DataPreprocessor(PipelineStep):
+class DataPreprocessor:
     """Loads and cleans raw data (e.g. MovieLens)."""
     def __init__(self, config: dict):
         self.config = config
